@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kakochess - Admin Mode</title>
+    <!-- Include jQuery and Chessboard.js CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="dark-mode">
+    <div class="app-container">
+      <header>
+        <h1>Kakochess Admin</h1>
+        <p class="subtitle">Train the AI by playing a game</p>
+        <div class="mode-badge admin-badge">Admin Mode</div>
+      </header>
+      
+      <div class="game-area">
+        <div id="status" class="status-panel">White to move</div>
+        
+        <div class="board-container">
+          <div id="myBoard"></div>
+        </div>
+        
+        <div class="controls">
+          <button id="startBtn">Restart Game</button>
+          <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
+          <button id="forceTrainBtn" style="background:var(--accent-hover);">Train Now (Current Game)</button>
+          <button id="selfPlayBtn" style="background:#8b5cf6;">Start Self-Play</button>
+        </div>
+        <div id="training-status">Training in progress... This may take a few seconds.</div>
+      </div>
+      
+      <div class="links">
+        <a href="/index.html">Switch to Guest Mode</a>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <!-- Pass admin mode flag via variable -->
+    <script>window.IS_ADMIN_MODE = true;</script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
