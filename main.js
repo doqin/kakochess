@@ -10,21 +10,102 @@ let $status = $('#status');
 let fenHistory = [];
 let isSelfPlay = false;
 let cachedBase64Credentials = null;
+let selectedSquare = null;
+
+function removeHighlights() {
+  $('#myBoard .square-55d63').removeClass('highlight-square');
+  $('#myBoard .square-55d63').removeClass('selected-square');
+}
+
+function removeLastMoveHighlights() {
+  $('#myBoard .square-55d63').removeClass('last-move');
+}
+
+function highlightLastMove(from, to) {
+  removeLastMoveHighlights();
+  $('#myBoard .square-' + from).addClass('last-move');
+  $('#myBoard .square-' + to).addClass('last-move');
+}
+
+function highlightLegalMoves(square) {
+  removeHighlights();
+  
+  // Highlight the selected square
+  $('#myBoard .square-' + square).addClass('selected-square');
+  
+  const moves = game.moves({
+    square: square,
+    verbose: true
+  });
+  
+  for (let i = 0; i < moves.length; i++) {
+    $('#myBoard .square-' + moves[i].to).addClass('highlight-square');
+  }
+}
+
+// Handle Tap-To-Move interface for mobile/desktop
+$('#myBoard').on('mousedown click', '.square-55d63', function(e) {
+  if (game.game_over() || isSelfPlay) return;
+
+  const square = $(this).attr('data-square');
+  const piece = game.get(square);
+  const orientationColor = board.orientation() === 'white' ? 'w' : 'b';
+
+  // If already have a selected square, try making a move
+  if (selectedSquare && selectedSquare !== square) {
+    const move = game.move({
+      from: selectedSquare,
+      to: square,
+      promotion: 'q'
+    });
+
+    if (move) {
+      board.position(game.fen());
+      fenHistory.push(game.fen());
+      updateStatus();
+      removeHighlights();
+      highlightLastMove(selectedSquare, square);
+      selectedSquare = null;
+      if (!game.game_over()) {
+        window.setTimeout(getBotMove, 250);
+      } else {
+        checkGameOver();
+      }
+      return;
+    }
+  }
+
+  // If clicking on our own piece, select it
+  if (piece && piece.color === orientationColor) {
+    selectedSquare = square;
+    highlightLegalMoves(square);
+    return;
+  }
+
+  // If clicking empty square or enemy piece (and not making a move), deselect
+  removeHighlights();
+  selectedSquare = null;
+});
 
 function onDragStart (source, piece, position, orientation) {
   // do not pick up pieces if the game is over
-  if (game.game_over()) return false;
+  if (game.game_over() || isSelfPlay) return false;
 
   // only pick up pieces for the player's current color
-  if (board.orientation() === 'white' && piece.search(/^b/) !== -1) return false;
-  if (board.orientation() === 'black' && piece.search(/^w/) !== -1) return false;
+  const playerColor = board.orientation() === 'white' ? 'w' : 'b';
+  if (piece.search(new RegExp('^' + playerColor)) === -1) return false;
+
+  // Show selection and legal moves immediately
+  selectedSquare = source;
+  highlightLegalMoves(source);
 }
 
 function makeRandomMove () {
   const possibleMoves = game.moves();
   if (possibleMoves.length === 0) return;
   const randomIdx = Math.floor(Math.random() * possibleMoves.length);
-  game.move(possibleMoves[randomIdx]);
+  const move = game.move(possibleMoves[randomIdx]);
+  highlightLastMove(move.from, move.to);
   board.position(game.fen());
   fenHistory.push(game.fen());
   updateStatus();
@@ -52,6 +133,7 @@ async function getBotMove() {
         game.move({ from, to, promotion });
         board.position(game.fen());
         fenHistory.push(game.fen());
+        highlightLastMove(from, to);
       } else {
         // Fallback
         makeRandomMove();
@@ -74,6 +156,11 @@ async function getBotMove() {
 }
 
 function onDrop (source, target) {
+  // If we just tapped the same piece, don't clear anything
+  if (source === target) return;
+
+  removeHighlights();
+  selectedSquare = null;
   // see if the move is legal
   // chess.js version ^0.12.0 handles `{from, to, promotion}`
   const move = game.move({
@@ -88,6 +175,7 @@ function onDrop (source, target) {
   // State after player move
   fenHistory.push(game.fen());
   updateStatus();
+  highlightLastMove(source, target);
 
   // make bot move
   if (!game.game_over()) {
@@ -213,6 +301,8 @@ function restartGame() {
   game.reset();
   fenHistory = [];
   board.start(); // Resets piece positions but keeps the flipped orientation
+  removeHighlights();
+  removeLastMoveHighlights();
   updateStatus();
   
   // If the player is now Black or we are in Self-Play, kick off bot move immediately
