@@ -315,7 +315,11 @@ $('#startBtn').on('click', restartGame);
 
 $('#switchBtn').on('click', function() {
   board.flip();
-  restartGame();
+  // If it's now the bot's turn, trigger a move
+  const botColor = board.orientation() === 'white' ? 'b' : 'w';
+  if (game.turn() === botColor && !game.game_over()) {
+    window.setTimeout(getBotMove, 250);
+  }
 });
 
 const forceTrainBtn = document.getElementById('forceTrainBtn');
