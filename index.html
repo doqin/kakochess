@@ -28,6 +28,48 @@
           <button id="startBtn">Restart Game</button>
           <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
         </div>
+
+        <!-- Bot Settings -->
+        <details id="botSettingsPanel" style="margin-top: 16px; width: 100%; max-width: 480px;">
+          <summary style="cursor:pointer; font-size:0.85rem; font-weight:700; color: var(--text-secondary); user-select:none; padding: 6px 0;">
+            ⚙️ Bot Settings
+          </summary>
+          <div id="bot-settings-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; margin-top:12px; padding:14px; background:rgba(255,255,255,0.04); border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+
+            <div class="setting-row">
+              <label class="setting-label" for="mctsSims" title="Number of MCTS simulations per move. More = stronger but slower. (default: 50)">
+                🔍 Simulations
+              </label>
+              <input type="number" id="mctsSims" class="styled-input setting-input" value="50" min="5" max="500" step="5" />
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label" for="cpuct" title="Exploration constant C_puct. Higher = more exploration, lower = more exploitation. (default: 1.5)">
+                🌡️ C_puct
+              </label>
+              <input type="number" id="cpuct" class="styled-input setting-input" value="1.5" min="0.1" max="5.0" step="0.1" />
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label" for="tempThreshold" title="Move number to switch from exploratory (temp=1) to greedy/optimal (temp=0) play. (default: 30)">
+                🎯 Temp. cutoff
+              </label>
+              <input type="number" id="tempThreshold" class="styled-input setting-input" value="30" min="0" max="80" step="1" />
+            </div>
+
+            <div class="setting-row">
+              <label class="setting-label" for="dirichletEps" title="Dirichlet noise epsilon at root (0 = no noise / pure policy, 0.25 = standard AlphaZero). (default: 0.25)">
+                🎲 Dirichlet ε
+              </label>
+              <input type="number" id="dirichletEps" class="styled-input setting-input" value="0.25" min="0" max="1" step="0.05" />
+            </div>
+
+          </div>
+          <p style="font-size:0.72rem; color:var(--text-secondary); margin-top:6px; opacity:0.6; text-align:center;">
+            Changes apply on the next bot move. Hover labels for info.
+          </p>
+        </details>
+
       </div>
       
       <div class="links">

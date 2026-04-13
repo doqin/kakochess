@@ -15,6 +15,9 @@
         <h1>Kakochess Admin</h1>
         <p class="subtitle">Train the AI by playing a game</p>
         <div class="mode-badge admin-badge">Admin Mode</div>
+        <div id="game-counter" style="margin-top: 5px; font-size: 0.85rem; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; display: inline-block;">
+          Games Trained: <span id="gamesTrained" style="color: var(--accent); font-weight: 700;">0</span>
+        </div>
       </header>
       
       <div class="game-area">
@@ -24,13 +27,100 @@
           <div id="myBoard"></div>
         </div>
         
-        <div class="controls">
+        <div class="controls" style="margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+          <label for="opponentSelect" style="align-self: center; font-size: 0.9rem; color: var(--text-secondary);">Opponent:</label>
+          <select id="opponentSelect" class="styled-input">
+            <option value="bot">Kakochess Bot</option>
+            <option value="stockfish-local">Stockfish (Local Browser)</option>
+            <option value="stockfish-online">Stockfish (Online API)</option>
+          </select>
+          
+          <div id="sf-settings" style="display: none; align-items: center; gap: 8px;">
+            <label for="sfDepth" title="How many moves ahead Stockfish looks. Higher = stronger." style="font-size: 0.9rem; color: var(--text-secondary); margin-left: 8px; cursor: help;">Depth:</label>
+            <input type="number" id="sfDepth" class="styled-input" value="1" min="1" max="20" style="width: 50px;" />
+            <label for="sfSkill" title="Strength of the Stockfish teacher. 0 is beginner, 20 is Grandmaster." style="font-size: 0.9rem; color: var(--text-secondary); margin-left: 8px; cursor: help;">Skill (0-20):</label>
+            <input type="number" id="sfSkill" class="styled-input" value="0" min="0" max="20" style="width: 50px;" />
+          </div>
+        </div>
+
+        <div class="controls" style="margin-bottom: 12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; gap: 12px; flex-wrap: wrap; justify-content: center;">
+          <!-- Training Mode Selector -->
+          <div style="width: 100%; display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 4px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Training Mode:</label>
+            <div style="display:flex; gap: 6px;">
+              <button id="modeNeuralBtn" style="background: var(--accent); font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; border: none; cursor:pointer; color: white;">🧠 Self-Play (Neural)</button>
+              <button id="modeTeacherBtn" style="background: rgba(255,255,255,0.1); font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); cursor:pointer; color: white;">📚 Teacher Mode (Classical)</button>
+            </div>
+          </div>
+
+          <!-- Common hyperparams -->
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <label title="Number of board simulations the bot runs per move. Higher = smarter but slower." style="font-size: 0.8rem; color: var(--text-secondary); cursor: help;">MCTS Sims:</label>
+            <input type="number" id="mctsSims" class="styled-input" value="50" min="10" max="500" style="width: 55px; height: 30px; font-size: 0.8rem;" />
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <label title="Exploration constant (C_puct). Higher = explores more moves; lower = trusts the policy. AlphaZero uses 1.5." style="font-size: 0.8rem; color: var(--text-secondary); cursor: help;">C_puct:</label>
+            <input type="number" id="cpuct" class="styled-input" value="1.5" min="0.1" max="5.0" step="0.1" style="width: 55px; height: 30px; font-size: 0.8rem;" />
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <label title="Move number to switch from exploratory (temp=1) to greedy/optimal (temp=0) play." style="font-size: 0.8rem; color: var(--text-secondary); cursor: help;">Temp. cutoff:</label>
+            <input type="number" id="tempThreshold" class="styled-input" value="30" min="0" max="80" step="1" style="width: 50px; height: 30px; font-size: 0.8rem;" />
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <label title="Dirichlet noise epsilon at root. 0 = pure policy, 0.25 = standard AlphaZero." style="font-size: 0.8rem; color: var(--text-secondary); cursor: help;">Dirichlet ε:</label>
+            <input type="number" id="dirichletEps" class="styled-input" value="0.25" min="0" max="1" step="0.05" style="width: 55px; height: 30px; font-size: 0.8rem;" />
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <label title="Number of historical positions the model reviews at once during training." style="font-size: 0.8rem; color: var(--text-secondary); cursor: help;">Batch Size:</label>
+            <input type="number" id="batchSize" class="styled-input" value="128" min="32" max="512" style="width: 55px; height: 30px; font-size: 0.8rem;" />
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px; position: relative;">
+            <label title="The peak of the OneCycle learning rate curve. Higher max LR helps escape local minima faster." style="font-size: 0.8rem; color: var(--text-secondary); cursor: help;">Max LR:</label>
+            <input type="number" id="learningRate" class="styled-input" value="0.0001" step="0.00001" min="0" max="0.1" style="width: 85px; height: 30px; font-size: 0.8rem;" />
+            <span style="font-size: 0.6rem; background: var(--accent); color: white; padding: 1px 4px; border-radius: 3px; position: absolute; top: -12px; right: 0; font-weight: 700;">ONECYCLE</span>
+          </div>
+
+          <!-- Teacher-specific controls -->
+          <div id="teacher-controls" style="display: none; align-items: center; gap: 8px; width: 100%; justify-content: center; margin-top: 4px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1);">
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <label title="How many moves ahead the classical teacher searches. Depth 3 ≈ 1200-1400 ELO and fast. Depth 4 ≈ 1500+ but slower." style="font-size: 0.8rem; color: #fbbf24; cursor: help;">📚 Search Depth:</label>
+              <input type="number" id="teacherDepth" class="styled-input" value="3" min="2" max="5" style="width: 50px; height: 30px; font-size: 0.8rem;" />
+            </div>
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <label title="Number of teacher games to run in a batch." style="font-size: 0.8rem; color: #fbbf24; cursor: help;">Games per batch:</label>
+              <input type="number" id="teacherGames" class="styled-input" value="5" min="1" max="50" style="width: 50px; height: 30px; font-size: 0.8rem;" />
+            </div>
+          </div>
+        </div>
+
+        <div class="controls" style="flex-wrap: wrap;">
           <button id="startBtn">Restart Game</button>
           <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
           <button id="forceTrainBtn" style="background:var(--accent-hover);">Train Now (Current Game)</button>
           <button id="selfPlayBtn" style="background:#8b5cf6;">Start Self-Play</button>
+          <button id="teacherRunBtn" style="background:#d97706; display:none;">▶ Run Teacher Games</button>
         </div>
         <div id="training-status">Training in progress... This may take a few seconds.</div>
+        
+        <div id="loss-container" style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05);">
+          <div style="font-weight: 700; margin-bottom: 8px; color: var(--text-secondary); display: flex; justify-content: space-between;">
+            <span>Training Loss History</span>
+            <span id="current-loss" style="color: var(--accent);">--</span>
+          </div>
+          <div id="loss-sparkline" style="display: flex; align-items: flex-end; gap: 2px; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;">
+            <!-- Bars will be injected here -->
+          </div>
+          <div id="loss-list" style="max-height: 100px; overflow-y: auto; color: var(--text-secondary); line-height: 1.4;">
+            <div style="font-style: italic; opacity: 0.5;">No training data yet...</div>
+          </div>
+        </div>
+
+        <div id="history-container" style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.05);">
+          <div style="font-weight: 700; margin-bottom: 8px; color: var(--text-secondary);">Match History</div>
+          <div id="match-list" style="max-height: 150px; overflow-y: auto; color: var(--text-secondary); line-height: 1.4;">
+            <div style="font-style: italic; opacity: 0.5;">No matches played yet...</div>
+          </div>
+        </div>
       </div>
       
       <div class="links">
