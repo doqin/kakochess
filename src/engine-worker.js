@@ -5,7 +5,12 @@
  */
 
 import { getBestMove } from './chess-engine.js';
-import { getOnnxModelVersion, loadOnnxModel } from './onnx-engine.js';
+import {
+  clearEvalCache,
+  getOnnxModelVersion,
+  loadOnnxModel,
+  releaseOnnxModel,
+} from './onnx-engine.js';
 
 // Setup listener for incoming requests
 self.onmessage = async (e) => {
@@ -32,6 +37,18 @@ self.onmessage = async (e) => {
       });
     } catch (err) {
       console.error('[Worker] Model load failed:', err);
+      self.postMessage({ id, type: 'ERROR', payload: err.message });
+    }
+  } else if (type === 'TRIM_MEMORY') {
+    try {
+      const hard = !!payload?.hard;
+      if (hard) {
+        await releaseOnnxModel();
+      } else {
+        clearEvalCache();
+      }
+      self.postMessage({ id, type: 'MEMORY_TRIMMED', payload: { hard } });
+    } catch (err) {
       self.postMessage({ id, type: 'ERROR', payload: err.message });
     }
   }

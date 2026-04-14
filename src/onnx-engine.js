@@ -19,6 +19,14 @@ let _session = null;     // cached InferenceSession
 let _loadPromise = null; // singleton loading promise
 let _modelVersion = null;
 const EVAL_CACHE = new Map(); // FEN -> score
+const DEVICE_MEMORY_GB = (typeof navigator !== 'undefined' && typeof navigator.deviceMemory === 'number')
+  ? navigator.deviceMemory
+  : null;
+const MAX_EVAL_CACHE = DEVICE_MEMORY_GB && DEVICE_MEMORY_GB <= 2
+  ? 256
+  : DEVICE_MEMORY_GB && DEVICE_MEMORY_GB <= 4
+    ? 768
+    : 2000;
 
 export function getOnnxStatus() {
   if (_session) return 'ready';
@@ -30,11 +38,23 @@ export function getOnnxModelVersion() {
   return _modelVersion;
 }
 
+export function clearEvalCache() {
+  EVAL_CACHE.clear();
+}
+
+export async function releaseOnnxModel() {
+  clearEvalCache();
+  if (_session && typeof _session.release === 'function') {
+    await _session.release();
+  }
+  _session = null;
+  _loadPromise = null;
+}
+
 export async function loadOnnxModel(options = {}) {
   const forceReload = !!options.force;
   if (forceReload) {
-    _session = null;
-    _loadPromise = null;
+    await releaseOnnxModel();
   }
 
   if (_session) return _session;
@@ -52,7 +72,7 @@ export async function loadOnnxModel(options = {}) {
       _session = await ort.InferenceSession.create(buffer, {
         executionProviders: ['wasm'],
       });
-      EVAL_CACHE.clear();
+      clearEvalCache();
       console.log('[ONNX] Model loaded ✓');
       return _session;
     } catch (err) {
@@ -129,8 +149,8 @@ export async function evaluateBoard(fen) {
     throw new Error('[ONNX] Non-finite value returned by model output tensor.');
   }
 
-  // 2. Store in cache (limit size to ~5000 entries)
-  if (EVAL_CACHE.size > 5000) {
+  // 2. Store in cache with adaptive memory cap
+  if (EVAL_CACHE.size >= MAX_EVAL_CACHE) {
     const firstKey = EVAL_CACHE.keys().next().value;
     EVAL_CACHE.delete(firstKey);
   }

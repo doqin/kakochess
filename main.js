@@ -8,16 +8,29 @@ const engineWorker = new Worker(new URL('./src/engine-worker.js', import.meta.ur
   type: 'module'
 });
 
+const IS_LOW_MEMORY_DEVICE = (typeof navigator !== 'undefined' && typeof navigator.deviceMemory === 'number')
+  ? navigator.deviceMemory <= 4
+  : false;
+const MAX_FEN_HISTORY = IS_LOW_MEMORY_DEVICE ? 256 : 512;
+const MAX_LOSS_POINTS = IS_LOW_MEMORY_DEVICE ? 120 : 300;
+const MODEL_POLL_INTERVAL_MS = IS_LOW_MEMORY_DEVICE ? 60000 : 30000;
+
 const workerCall = (type, payload) => {
   return new Promise((resolve, reject) => {
     const id = Math.random().toString(36).substring(7);
+    const timeoutMs = type === 'GET_BEST_MOVE' ? 30000 : 10000;
     const handler = (e) => {
       if (e.data.id === id) {
+        clearTimeout(timer);
         engineWorker.removeEventListener('message', handler);
         if (e.data.type === 'ERROR') reject(new Error(e.data.payload));
         else resolve(e.data.payload);
       }
     };
+    const timer = setTimeout(() => {
+      engineWorker.removeEventListener('message', handler);
+      reject(new Error(`[Worker] Timeout waiting for ${type}`));
+    }, timeoutMs);
     engineWorker.addEventListener('message', handler);
     engineWorker.postMessage({ type, payload, id });
   });
@@ -69,6 +82,25 @@ let currentScenario = null;
 let autoResetMode = false;
 let capturedByWhite = [];
 let capturedByBlack = [];
+
+function pushFenHistory(fen) {
+  fenHistory.push(fen);
+  if (fenHistory.length > MAX_FEN_HISTORY) {
+    fenHistory.shift();
+  }
+}
+
+function pushLossPoint(loss) {
+  if (!lossChart) return;
+  lossChart.data.labels.push(lossChart.data.labels.length + 1);
+  lossChart.data.datasets[0].data.push(loss);
+
+  if (lossChart.data.labels.length > MAX_LOSS_POINTS) {
+    const over = lossChart.data.labels.length - MAX_LOSS_POINTS;
+    lossChart.data.labels.splice(0, over);
+    lossChart.data.datasets[0].data.splice(0, over);
+  }
+}
 
 function updateCapturedPiecesUI() {
   const $whiteCol = $('#captured-by-white');
@@ -279,8 +311,18 @@ engineWorker.addEventListener('message', (e) => {
 updateOnnxBadge('loading');
 
 // Keep the worker-side ONNX model synchronized with backend publishes.
-setInterval(pollModelVersionAndSync, 30000);
+setInterval(pollModelVersionAndSync, MODEL_POLL_INTERVAL_MS);
 setTimeout(pollModelVersionAndSync, 4000);
+
+// Free worker cache when tab is hidden/backgrounded (common mobile pressure case).
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') {
+    workerCall('TRIM_MEMORY', { hard: false }).catch(() => {});
+  }
+});
+window.addEventListener('pagehide', () => {
+  workerCall('TRIM_MEMORY', { hard: true }).catch(() => {});
+});
 
 // (The worker script itself triggers loadOnnxModel on init)
 
@@ -333,7 +375,8 @@ async function initLossChart() {
     const res = await fetch(`${API_URL}/stats`);
     if (res.ok) {
       const stats = await res.json();
-      stats.forEach((s, i) => {
+      const trimmed = stats.slice(-MAX_LOSS_POINTS);
+      trimmed.forEach((s, i) => {
         lossChart.data.labels.push(i + 1);
         lossChart.data.datasets[0].data.push(s.loss);
       });
@@ -395,7 +438,7 @@ $('#myBoard').on('mousedown click', '.square-55d63', function (e) {
       }
 
       board.position(game.fen(), !isSelfPlay);
-      fenHistory.push(game.fen());
+      pushFenHistory(game.fen());
       updateStatus();
       removeHighlights();
       highlightLastMove(selectedSquare, square);
@@ -446,7 +489,7 @@ function onDrop(source, target) {
     updateAvatar('wait');
   }
 
-  fenHistory.push(game.fen());
+  pushFenHistory(game.fen());
   updateStatus();
   highlightLastMove(source, target);
   if (!game.isGameOver()) {
@@ -469,7 +512,7 @@ function makeRandomMove() {
   const move = game.move(possibleMoves[Math.floor(Math.random() * possibleMoves.length)]);
   highlightLastMove(move.from, move.to);
   board.position(game.fen(), !isSelfPlay);
-  fenHistory.push(game.fen());
+  pushFenHistory(game.fen());
   if (move.captured) {
     if (move.color === 'w') capturedByWhite.push({ type: move.captured, color: 'b' });
     else capturedByBlack.push({ type: move.captured, color: 'w' });
@@ -526,7 +569,7 @@ async function getBotMove() {
     const promotion = moveUci.length === 5 ? moveUci[4] : undefined;
     const move = game.move({ from, to, promotion });
     board.position(game.fen(), !isSelfPlay);
-    fenHistory.push(game.fen());
+    pushFenHistory(game.fen());
     highlightLastMove(from, to);
     if (move && move.captured) {
       if (move.color === 'w') capturedByWhite.push({ type: move.captured, color: 'b' });
@@ -643,8 +686,7 @@ async function trainBot() {
 
       // Update Chart
       if (lossChart) {
-        lossChart.data.labels.push(lossChart.data.labels.length + 1);
-        lossChart.data.datasets[0].data.push(data.loss);
+        pushLossPoint(data.loss);
         lossChart.update();
       }
 
@@ -713,7 +755,7 @@ function restartGame() {
     for (const move of opening.moves) {
       const result = game.move(move);
       if (result) {
-        fenHistory.push(game.fen());
+        pushFenHistory(game.fen());
       }
     }
   }
