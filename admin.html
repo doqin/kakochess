@@ -1,49 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kakochess - Admin Mode</title>
-    <!-- Include jQuery and Chessboard.js CSS -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body class="dark-mode">
-    <div class="app-container">
-      <header>
-        <h1>Kakochess Admin</h1>
-        <p class="subtitle">Train the AI by playing a game</p>
-        <div class="mode-badge admin-badge">Admin Mode</div>
-      </header>
-      
-      <div class="game-area">
-        <div id="status" class="status-panel">White to move</div>
-        
-        <div class="board-container">
-          <div id="myBoard"></div>
-        </div>
-        
-        <div class="controls">
-          <button id="startBtn">Restart Game</button>
-          <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
-          <button id="forceTrainBtn" style="background:var(--accent-hover);">Train Now (Current Game)</button>
-          <button id="selfPlayBtn" style="background:#8b5cf6;">Start Self-Play</button>
-        </div>
-        <div id="training-status">Training in progress... This may take a few seconds.</div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=5.0, interactive-widget=resizes-content" />
+  <title>Kakochess - Admin Mode</title>
+  <!-- Include jQuery and Chessboard.js CSS -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="dark-mode">
+  <div class="app-container">
+    <header>
+      <h1>Kakochess Admin</h1>
+      <p class="subtitle">Train the AI by playing a game</p>
+      <div class="mode-badge admin-badge">Admin Mode</div>
+      <div id="onnx-badge" class="onnx-badge" data-state="idle">⬤ ONNX: Idle</div>
+    </header>
+
+    <div class="game-area">
+      <div id="status" class="status-panel">
+        <div class="avatar-box"><img id="botAvatar" src="/wait.png" alt="Bot Avatar" /></div>
+        <span id="status-text">White to move</span>
       </div>
+
+      <div class="play-area">
+        <div class="board-layout">
+          <div id="captured-by-white" class="captured-column white-captures"></div>
+          <div class="board-container">
+            <div id="myBoard"></div>
+          </div>
+          <div id="captured-by-black" class="captured-column black-captures"></div>
+        </div>
+
+        <div class="controls">
+          <div class="actions-layout">
+            <button id="startBtn">Restart Game</button>
+            <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
+            <button id="forceTrainBtn" style="background:var(--accent-hover);">Train Now (Current Game)</button>
+            <button id="selfPlayBtn" style="background:#8b5cf6;">Start Self-Play</button>
+          </div>
+
+          <div class="settings-layout">
+            <div class="setting-group-premium">
+              <div class="setting-group-header">
+                <span class="setting-group-title">Training presets</span>
+                <select id="presetSelect" class="field-select" style="font-size: 0.8rem; padding: 4px 8px;">
+                  <option value="custom">-- Presets --</option>
+                  <option value="standard" selected>Standard</option>
+                  <option value="aggressive">Aggressive Learning</option>
+                  <option value="finetune">Fine Tuning</option>
+                </select>
+              </div>
+              <div class="setting-fields training-fields">
+                <div class="field-item">
+                  <label for="lrInput" class="field-label">
+                    Learning Rate
+                    <span class="info-icon" data-tooltip="Determines how fast the model adapts. High = fast but unstable; Low = slow but steady.">?</span>
+                  </label>
+                  <input type="number" id="lrInput" value="0.0001" step="0.0001" class="field-input">
+                </div>
+                <div class="field-item">
+                  <label for="discountInput" class="field-label">
+                    Discount
+                    <span class="info-icon" data-tooltip="Weights future rewards. 1.0 means future moves are as important as the current one.">?</span>
+                  </label>
+                  <input type="number" id="discountInput" value="0.95" step="0.01" max="1.0" class="field-input">
+                </div>
+
+                <div class="control-group randomize-row">
+                  <label for="randomizeOpeningsCheck"><i class="fas fa-shuffle"></i> Randomize Openings</label>
+                  <input type="checkbox" id="randomizeOpeningsCheck">
+                </div>
+
+                <div class="field-item">
+                  <label for="epsilonInput" class="field-label">
+                    Epsilon
+                    <span class="info-icon" data-tooltip="Exploration rate. Higher values make the bot try more random moves during self-play.">?</span>
+                  </label>
+                  <input type="number" id="epsilonInput" value="0.25" step="0.05" class="field-input">
+                </div>
+                <div class="field-item">
+                  <label for="depthInput" class="field-label">
+                    Search Depth
+                    <span class="info-icon" data-tooltip="Search depth for bot moves. Higher is smarter but slower.">?</span>
+                  </label>
+                  <input type="number" id="depthInput" value="2" min="1" max="5" class="field-input">
+                </div>
+              </div>
+            </div>
+
+            <!-- Scenario Training -->
+            <div class="setting-group-premium">
+              <div class="setting-group-header">
+                <span class="setting-group-title">Scenario Training</span>
+              </div>
+              <div class="setting-fields" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="genRandomBtn" class="action-btn" style="flex: 1; padding: 6px; font-size: 0.85rem; background: var(--bg-hover);">Random Endgame</button>
+                <button id="genPawnBtn" class="action-btn" style="flex: 1; padding: 6px; font-size: 0.85rem; background: var(--bg-hover);">Pawn Practice</button>
+                <button id="genRookBtn" class="action-btn" style="flex: 1; padding: 6px; font-size: 0.85rem; background: var(--bg-hover);">Rook Practice</button>
+              </div>
+              <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="autoResetCheck" style="width: 16px; height: 16px; cursor: pointer;">
+                <label for="autoResetCheck" class="field-label" style="margin-bottom: 0; cursor: pointer;">Auto-reset on completion</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group" style="width: 100%; margin-bottom: 12px;">
+            <label style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 4px; display: block;"><i class="fas fa-chess-board"></i> Initial Position</label>
+            <select id="openingSelect" class="field-input" style="width: 100%; padding: 8px; border-radius: 6px;">
+              <option value="standard">Standard Start</option>
+              <option value="ruyLopez">Ruy Lopez</option>
+              <option value="sicilian">Sicilian Defense</option>
+              <option value="queensGambit">Queen's Gambit</option>
+              <option value="french">French Defense</option>
+              <option value="caroKann">Caro-Kann</option>
+              <option value="italian">Italian Game</option>
+              <option value="scandi">Scandinavian</option>
+              <option value="indian">King's Indian</option>
+              <option value="slav">Slav Defense</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="training-status">Training in progress... This may take a few seconds.</div>
       
-      <div class="links">
-        <a href="/index.html">Switch to Guest Mode</a>
+      <!-- Training Loss Graph -->
+      <div class="setting-group-premium" style="margin-top: 24px;">
+        <div class="setting-group-header">
+          <span class="setting-group-title">Training Progress (Average Loss)</span>
+        </div>
+        <div style="width: 100%; height: 200px; padding: 8px;">
+          <canvas id="lossChart"></canvas>
+        </div>
+        <button id="resetBrainBtn" style="background: linear-gradient(135deg, #ff4d4d, #cc0000); padding: 0.8rem 1.5rem; font-weight: 600;">
+          <i class="fas fa-trash"></i> Reset Engine Brain
+        </button>
       </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <!-- Pass admin mode flag via variable -->
-    <script>window.IS_ADMIN_MODE = true;</script>
-    <script type="module" src="./main.js"></script>
-  </body>
+    <div class="links">
+      <a href="/index.html">Switch to Guest Mode</a>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <!-- Pass admin mode flag via variable -->
+  <script>window.IS_ADMIN_MODE = true;</script>
+  <script type="module" src="./main.js"></script>
+</body>
+
 </html>
