@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kakochess - Admin Mode</title>
+    <title>Kakochess | Admin Control</title>
     <!-- Include jQuery and Chessboard.js CSS -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body class="dark-mode">
+  <body>
     <div class="app-container">
       <header>
         <h1>Kakochess Admin</h1>
-        <p class="subtitle">Train the AI by playing a game</p>
-        <div class="mode-badge admin-badge">Admin Mode</div>
+        <p class="subtitle">Reinforcement Learning Dashboard</p>
+        <div class="mode-badge admin-badge">Model Training Mode</div>
       </header>
       
       <div class="game-area">
@@ -25,16 +25,28 @@
         </div>
         
         <div class="controls">
-          <button id="startBtn">Restart Game</button>
-          <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
-          <button id="forceTrainBtn" style="background:var(--accent-hover);">Train Now (Current Game)</button>
-          <button id="selfPlayBtn" style="background:#8b5cf6;">Start Self-Play</button>
+          <button id="startBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
+            Reset
+          </button>
+          <button id="switchBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+            Flip
+          </button>
+          <button id="forceTrainBtn" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><path d="M16 5V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2"/><path d="M10 10v4"/><path d="M14 10v4"/></svg>
+            Commit Moves
+          </button>
+          <button id="selfPlayBtn" style="background: #8b5cf6; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
+            Self-Play
+          </button>
         </div>
-        <div id="training-status">Training in progress... This may take a few seconds.</div>
+        <div id="training-status">Training in progress... Optimizing neural weights.</div>
       </div>
       
       <div class="links">
-        <a href="/index.html">Switch to Guest Mode</a>
+        <a href="/index.html">Return to Guest Mode</a>
       </div>
     </div>
 
@@ -42,7 +54,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <!-- Pass admin mode flag via variable -->
     <script>window.IS_ADMIN_MODE = true;</script>
     <script type="module" src="./main.js"></script>
   </body>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kakochess - Guest Mode</title>
+    <title>Kakochess | Advanced AI Chess</title>
     <!-- Include jQuery and Chessboard.js CSS -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
@@ -13,8 +13,8 @@
     <div class="app-container">
       <header>
         <h1>Kakochess</h1>
-        <p class="subtitle">Play against the AI Model</p>
-        <div class="mode-badge guest-badge">Guest Mode</div>
+        <p class="subtitle">Neural Network Powered Engine</p>
+        <div class="mode-badge guest-badge">Ranked Play</div>
       </header>
       
       <div class="game-area">
@@ -25,13 +25,20 @@
         </div>
         
         <div class="controls">
-          <button id="startBtn">Restart Game</button>
-          <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
+          <button id="startBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
+            Restart Game
+          </button>
+          <button id="switchBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+            Switch Sides
+          </button>
         </div>
       </div>
       
       <div class="links">
-        <a href="/admin.html">Switch to Admin Mode (Train Bot)</a>
+        <a href="/admin.html">Administrator Dashboard</a>
+        <a href="https://github.com/doqin/kakochess" target="_blank">Source Code</a>
       </div>
     </div>
 
@@ -39,7 +46,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <!-- We bundle via Vite or just load type module -->
     <script type="module" src="./main.js"></script>
   </body>
 </html>
