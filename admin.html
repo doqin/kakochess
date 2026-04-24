@@ -3,38 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kakochess - Admin Mode</title>
+    <title>Kakochess | Admin Control</title>
     <!-- Include jQuery and Chessboard.js CSS -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body class="dark-mode">
+  <body>
     <div class="app-container">
       <header>
         <h1>Kakochess Admin</h1>
-        <p class="subtitle">Train the AI by playing a game</p>
-        <div class="mode-badge admin-badge">Admin Mode</div>
+        <p class="subtitle">Reinforcement Learning Dashboard</p>
+        <div class="mode-badge admin-badge">Model Training Mode</div>
       </header>
       
       <div class="game-area">
-        <div id="status" class="status-panel">White to move</div>
-        
-        <div class="board-container">
-          <div id="myBoard"></div>
+        <div class="board-section">
+          <div id="status" class="status-panel">White to move</div>
+          <div class="board-main">
+            <div class="avatar-container">
+              <img id="botAvatar" src="/wait.png" alt="Bot Avatar" class="bot-avatar" />
+              <div class="bot-name">Kakochess AI</div>
+            </div>
+            <div class="board-container">
+              <div id="myBoard"></div>
+            </div>
+          </div>
         </div>
-        
-        <div class="controls">
-          <button id="startBtn">Restart Game</button>
-          <button id="switchBtn" style="background:#64748b;">Switch Sides</button>
-          <button id="forceTrainBtn" style="background:var(--accent-hover);">Train Now (Current Game)</button>
-          <button id="selfPlayBtn" style="background:#8b5cf6;">Start Self-Play</button>
+
+        <div class="sidebar">
+          <div class="side-panel">
+            <div class="panel-header">Move History</div>
+            <div id="moveHistory" class="move-history">
+              <table id="moveTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>White</th>
+                    <th>Black</th>
+                  </tr>
+                </thead>
+                <tbody id="moveBody">
+                  <!-- Moves will be appended here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="navigation-controls">
+              <button id="navFirst" class="nav-btn">«</button>
+              <button id="navPrev" class="nav-btn">‹</button>
+              <button id="navNext" class="nav-btn">›</button>
+              <button id="navLast" class="nav-btn">»</button>
+            </div>
+            <div id="training-status">Ready for training data.</div>
+          </div>
+          
+          <div class="controls">
+            <div class="button-group">
+              <button id="startBtn" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
+                Reset Board
+              </button>
+              <button id="switchBtn" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+                Flip Perspective
+              </button>
+              <button id="forceTrainBtn" class="btn-primary" style="background-color: #ef4444;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><path d="M16 5V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2"/><path d="M10 10v4"/><path d="M14 10v4"/></svg>
+                Commit Training
+              </button>
+              <button id="selfPlayBtn" class="btn-primary">
+                Start AI Discovery
+              </button>
+            </div>
+          </div>
         </div>
-        <div id="training-status">Training in progress... This may take a few seconds.</div>
       </div>
       
       <div class="links">
-        <a href="/index.html">Switch to Guest Mode</a>
+        <a href="/index.html">Return to Guest Mode</a>
       </div>
     </div>
 
@@ -42,7 +88,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <!-- Pass admin mode flag via variable -->
     <script>window.IS_ADMIN_MODE = true;</script>
     <script type="module" src="./main.js"></script>
   </body>
