@@ -18,21 +18,69 @@
       </header>
       
       <div class="game-area">
-        <div id="status" class="status-panel">White to move</div>
-        
-        <div class="board-container">
-          <div id="myBoard"></div>
+        <div class="board-section">
+          <div id="status" class="status-panel">White to move</div>
+          <div class="board-main">
+            <div class="avatar-container">
+              <img id="botAvatar" src="/wait.png" alt="Bot Avatar" class="bot-avatar" />
+              <div class="bot-name">Kakochess AI</div>
+            </div>
+            <div class="board-container">
+              <div id="myBoard"></div>
+            </div>
+          </div>
         </div>
-        
-        <div class="controls">
-          <button id="startBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
-            Restart Game
-          </button>
-          <button id="switchBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
-            Switch Sides
-          </button>
+
+        <div class="sidebar">
+          <div class="side-panel">
+            <div class="panel-header">Move History</div>
+            <div id="moveHistory" class="move-history">
+              <table id="moveTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>White</th>
+                    <th>Black</th>
+                  </tr>
+                </thead>
+                <tbody id="moveBody">
+                  <!-- Moves will be appended here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="navigation-controls">
+              <button id="navFirst" class="nav-btn">«</button>
+              <button id="navPrev" class="nav-btn">‹</button>
+              <button id="navNext" class="nav-btn">›</button>
+              <button id="navLast" class="nav-btn">»</button>
+            </div>
+            <div id="training-status"></div>
+          </div>
+          
+          <div class="controls">
+            <div class="depth-selector">
+              <label for="depthSelect">Engine:</label>
+              <select id="depthSelect">
+                <option value="1">Beginner</option>
+                <option value="2" selected>Intermediate</option>
+                <option value="3">Advanced</option>
+                <option value="4">Expert</option>
+              </select>
+            </div>
+            <div class="button-group">
+              <button id="startBtn" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
+                New Game
+              </button>
+              <button id="switchBtn" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+                Flip Board
+              </button>
+              <button id="selfPlayBtn" class="btn-primary">
+                Start Self-Play
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       

@@ -18,31 +18,65 @@
       </header>
       
       <div class="game-area">
-        <div id="status" class="status-panel">White to move</div>
-        
-        <div class="board-container">
-          <div id="myBoard"></div>
+        <div class="board-section">
+          <div id="status" class="status-panel">White to move</div>
+          <div class="board-main">
+            <div class="avatar-container">
+              <img id="botAvatar" src="/wait.png" alt="Bot Avatar" class="bot-avatar" />
+              <div class="bot-name">Kakochess AI</div>
+            </div>
+            <div class="board-container">
+              <div id="myBoard"></div>
+            </div>
+          </div>
         </div>
-        
-        <div class="controls">
-          <button id="startBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
-            Reset
-          </button>
-          <button id="switchBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
-            Flip
-          </button>
-          <button id="forceTrainBtn" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><path d="M16 5V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2"/><path d="M10 10v4"/><path d="M14 10v4"/></svg>
-            Commit Moves
-          </button>
-          <button id="selfPlayBtn" style="background: #8b5cf6; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
-            Self-Play
-          </button>
+
+        <div class="sidebar">
+          <div class="side-panel">
+            <div class="panel-header">Move History</div>
+            <div id="moveHistory" class="move-history">
+              <table id="moveTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>White</th>
+                    <th>Black</th>
+                  </tr>
+                </thead>
+                <tbody id="moveBody">
+                  <!-- Moves will be appended here -->
+                </tbody>
+              </table>
+            </div>
+            <div class="navigation-controls">
+              <button id="navFirst" class="nav-btn">«</button>
+              <button id="navPrev" class="nav-btn">‹</button>
+              <button id="navNext" class="nav-btn">›</button>
+              <button id="navLast" class="nav-btn">»</button>
+            </div>
+            <div id="training-status">Ready for training data.</div>
+          </div>
+          
+          <div class="controls">
+            <div class="button-group">
+              <button id="startBtn" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M12 8v4l3 3"/></svg>
+                Reset Board
+              </button>
+              <button id="switchBtn" class="btn-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8v12M17 20l4-4M17 20l-4-4"/></svg>
+                Flip Perspective
+              </button>
+              <button id="forceTrainBtn" class="btn-primary" style="background-color: #ef4444;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><path d="M16 5V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2"/><path d="M10 10v4"/><path d="M14 10v4"/></svg>
+                Commit Training
+              </button>
+              <button id="selfPlayBtn" class="btn-primary">
+                Start AI Discovery
+              </button>
+            </div>
+          </div>
         </div>
-        <div id="training-status">Training in progress... Optimizing neural weights.</div>
       </div>
       
       <div class="links">
